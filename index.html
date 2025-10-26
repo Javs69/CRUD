@@ -10,7 +10,6 @@
   <div class="container mt-5">
     <div class="d-flex align-items-center justify-content-between mb-3">
       <h2 class="mb-0">Lista de Usuarios</h2>
-      <!-- Mini formulario para “Agregar” -->
       <form id="formAgregar" class="row g-2">
         <input class="form-control col" name="nombre"   placeholder="Nombre"   required>
         <input class="form-control col" name="apellido" placeholder="Apellido" required>
@@ -39,8 +38,8 @@
     const form  = document.getElementById('formAgregar');
 
     async function cargarTabla() {
-      const r = await fetch('api/listar.php');
-      const data = await r.json(); // [{id, nombre, apellido, genero, telefono}, ...]
+      const r = await fetch('listar.php'); // vi un tutorial para esto, lo que entendí es que aquí espera y busca los datos para mostrarlos en la tabla
+      const data = await r.json(); 
       tbody.innerHTML = '';
       data.forEach((u, i) => {
         tbody.insertAdjacentHTML('beforeend', `
@@ -58,7 +57,7 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(form);
-      const r = await fetch('api/crear.php', { method: 'POST', body: fd });
+      const r = await fetch('crear.php', { method: 'POST', body: fd });
       if (r.ok) {
         form.reset();
         await cargarTabla();
@@ -67,7 +66,7 @@
       }
     });
 
-    cargarTabla(); // carga inicial
+    cargarTabla();
   </script>
 </body>
 </html>
