@@ -1,64 +1,73 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CRUD de Usuarios</title>
   <link rel="stylesheet" href="public/css/bootstrap.min.css">
 </head>
 <body class="bg-light">
-
   <div class="container mt-5">
-    <h2 class="text-center mb-4">Lista de Usuarios</h2>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h2 class="mb-0">Lista de Usuarios</h2>
+      <!-- Mini formulario para “Agregar” -->
+      <form id="formAgregar" class="row g-2">
+        <input class="form-control col" name="nombre"   placeholder="Nombre"   required>
+        <input class="form-control col" name="apellido" placeholder="Apellido" required>
+        <select class="form-select col" name="genero" required>
+          <option value="" selected disabled>Género</option>
+          <option>Masculino</option><option>Femenino</option><option>Otro</option>
+        </select>
+        <input class="form-control col" name="telefono" placeholder="Teléfono" required>
+        <button class="btn btn-primary col-auto">Agregar</button>
+      </form>
+    </div>
 
     <table class="table table-striped table-bordered shadow">
       <thead class="table-dark text-center">
         <tr>
-          <th>#</th>
-          <th>Nombre</th>
-          <th>Apellido</th>
-          <th>Género</th>
-          <th>No. Teléfono</th>
-          <th>Acciones</th>
+          <th>#</th><th>Nombre</th><th>Apellido</th><th>Género</th><th>No. Teléfono</th>
         </tr>
       </thead>
-      <tbody class="text-center">
-        <tr>
-          <td>1</td>
-          <td>Carlos</td>
-          <td>Gómez</td>
-          <td>Masculino</td>
-          <td>5522334455</td>
-          <td>
-            <button class="btn btn-warning btn-sm">Editar</button>
-            <button class="btn btn-danger btn-sm">Eliminar</button>
-          </td>
-        </tr>
-        <tr>
-          <td>2</td>
-          <td>Ana</td>
-          <td>López</td>
-          <td>Femenino</td>
-          <td>5544667788</td>
-          <td>
-            <button class="btn btn-warning btn-sm">Editar</button>
-            <button class="btn btn-danger btn-sm">Eliminar</button>
-          </td>
-        </tr>
-        <tr>
-          <td>3</td>
-          <td>José</td>
-          <td>Pérez</td>
-          <td>Masculino</td>
-          <td>5511223344</td>
-          <td>
-            <button class="btn btn-warning btn-sm">Editar</button>
-            <button class="btn btn-danger btn-sm">Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
+      <tbody id="tbody" class="text-center"></tbody>
     </table>
   </div>
 
+  <script src="public/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const tbody = document.getElementById('tbody');
+    const form  = document.getElementById('formAgregar');
+
+    async function cargarTabla() {
+      const r = await fetch('api/listar.php');
+      const data = await r.json(); // [{id, nombre, apellido, genero, telefono}, ...]
+      tbody.innerHTML = '';
+      data.forEach((u, i) => {
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td>${i+1}</td>
+            <td>${u.nombre}</td>
+            <td>${u.apellido}</td>
+            <td>${u.genero}</td>
+            <td>${u.telefono}</td>
+          </tr>
+        `);
+      });
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const r = await fetch('api/crear.php', { method: 'POST', body: fd });
+      if (r.ok) {
+        form.reset();
+        await cargarTabla();
+      } else {
+        alert('No se pudo agregar.');
+      }
+    });
+
+    cargarTabla(); // carga inicial
+  </script>
 </body>
 </html>
