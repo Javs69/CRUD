@@ -7,63 +7,138 @@
   <link rel="stylesheet" href="public/css/bootstrap.min.css">
 </head>
 <body class="bg-light">
+
   <div class="container mt-5">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-      <h2 class="mb-0">Lista de Usuarios</h2>
-      <form id="formAgregar" class="row g-2">
-        <input class="form-control col" name="nombre"   placeholder="Nombre"   required>
-        <input class="form-control col" name="apellido" placeholder="Apellido" required>
-        <select class="form-select col" name="genero" required>
-          <option value="" selected disabled>Género</option>
-          <option>Masculino</option><option>Femenino</option><option>Otro</option>
-        </select>
-        <input class="form-control col" name="telefono" placeholder="Teléfono" required>
-        <button class="btn btn-primary col-auto">Agregar</button>
-      </form>
-    </div>
+    <h2 class="text-center mb-4">Lista de Usuarios</h2>
 
     <table class="table table-striped table-bordered shadow">
       <thead class="table-dark text-center">
         <tr>
-          <th>#</th><th>Nombre</th><th>Apellido</th><th>Género</th><th>No. Teléfono</th>
+          <th>#</th>
+          <th>Nombre</th>
+          <th>Apellido</th>
+          <th>Género</th>
+          <th>No. Teléfono</th>
+          <th>Acciones</th>
         </tr>
       </thead>
-      <tbody id="tbody" class="text-center"></tbody>
+      <tbody id="tbody" class="text-center">
+        <tr><td colspan="6">Cargando...</td></tr>
+      </tbody>
     </table>
+  </div>
+
+  <!-- Modal Editar -->
+  <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title" id="modalEditarLabel">Editar Usuario</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <form id="formEditar">
+          <div class="modal-body">
+            <input type="hidden" name="id" id="edit-id">
+            <div class="mb-3">
+              <label class="form-label">Nombre</label>
+              <input type="text" name="nombre" id="edit-nombre" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Apellido</label>
+              <input type="text" name="apellido" id="edit-apellido" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Género</label>
+              <select name="genero" id="edit-genero" class="form-select" required>
+                <option>Masculino</option>
+                <option>Femenino</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">No. Teléfono</label>
+              <input type="text" name="telefono" id="edit-telefono" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            <button class="btn btn-success" type="submit">Guardar cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <script src="public/js/bootstrap.bundle.min.js"></script>
   <script>
     const tbody = document.getElementById('tbody');
-    const form  = document.getElementById('formAgregar');
+    const editId = document.getElementById('edit-id');
+    const editNombre = document.getElementById('edit-nombre');
+    const editApellido = document.getElementById('edit-apellido');
+    const editGenero = document.getElementById('edit-genero');
+    const editTelefono = document.getElementById('edit-telefono');
+    const formEditar = document.getElementById('formEditar');
+    const modalEditar = new bootstrap.Modal(document.getElementById('modalEditar'));
 
     async function cargarTabla() {
-      const r = await fetch('listar.php'); // vi un tutorial para esto, lo que entendí es que aquí espera y busca los datos para mostrarlos en la tabla
-      const data = await r.json(); 
-      tbody.innerHTML = '';
-      data.forEach((u, i) => {
-        tbody.insertAdjacentHTML('beforeend', `
-          <tr>
-            <td>${i+1}</td>
-            <td>${u.nombre}</td>
-            <td>${u.apellido}</td>
-            <td>${u.genero}</td>
-            <td>${u.telefono}</td>
-          </tr>
-        `);
-      });
+      try {
+        const res = await fetch('listar.php', { cache: 'no-store' });
+        const data = await res.json();
+        if (!res.ok) {
+          tbody.innerHTML = `<tr><td colspan="6">Error: ${data.error || 'No se pudo cargar'}</td></tr>`;
+          return;
+        }
+        if (!Array.isArray(data) || data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6">No hay registros</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = '';
+        data.forEach((u, i) => {
+          tbody.insertAdjacentHTML('beforeend', `
+            <tr>
+              <td>${i+1}</td>
+              <td>${u.nombre}</td>
+              <td>${u.apellido}</td>
+              <td>${u.genero}</td>
+              <td>${u.telefono}</td>
+              <td>
+                <button class="btn btn-warning btn-sm btn-editar"
+                        data-id="${u.id}"
+                        data-nombre="${u.nombre}"
+                        data-apellido="${u.apellido}"
+                        data-genero="${u.genero}"
+                        data-telefono="${u.telefono}">
+                  Editar
+                </button>
+              </td>
+            </tr>
+          `);
+        });
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6">Error de red o JSON: ${e}</td></tr>`;
+      }
     }
 
-    form.addEventListener('submit', async (e) => {
+
+    tbody.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-editar');
+      if (!btn) return;
+      editId.value = btn.dataset.id;
+      editNombre.value = btn.dataset.nombre;
+      editApellido.value = btn.dataset.apellido;
+      editGenero.value = btn.dataset.genero;
+      editTelefono.value = btn.dataset.telefono;
+      modalEditar.show();
+    });
+
+    formEditar.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const fd = new FormData(form);
-      const r = await fetch('crear.php', { method: 'POST', body: fd });
-      if (r.ok) {
-        form.reset();
-        await cargarTabla();
-      } else {
-        alert('No se pudo agregar.');
-      }
+      const fd = new FormData(formEditar);
+      const res = await fetch('editar.php', { method: 'POST', body: fd });
+      const txt = await res.text();
+      if (!res.ok) { alert('No se pudo actualizar: ' + txt); return; }
+      modalEditar.hide();
+      await cargarTabla();
     });
 
     cargarTabla();
