@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-require_once __DIR__ . '/../index.php';
+require_once __DIR__ . '/conexion.php';
 
 $sql = "SELECT id, nombre, apellido, genero, telefono FROM usuarios ORDER BY id ASC";
 $res = pg_query($conexion, $sql);

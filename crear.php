@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../index.php'; // Esto tambíen fue de un video y nos sirve para conectar a la base de datos
+require_once __DIR__ . '/conexion.php'; // Esto tambíen fue de un video y nos sirve para conectar a la base de datos
 
 $nombre   = $_POST['nombre']   ?? '';
 $apellido = $_POST['apellido'] ?? '';
