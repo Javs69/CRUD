@@ -102,14 +102,20 @@
               <td>${u.genero}</td>
               <td>${u.telefono}</td>
               <td>
-                <button class="btn btn-warning btn-sm btn-editar"
-                        data-id="${u.id}"
-                        data-nombre="${u.nombre}"
-                        data-apellido="${u.apellido}"
-                        data-genero="${u.genero}"
-                        data-telefono="${u.telefono}">
-                  Editar
-                </button>
+                <div class="btn-group" role="group">
+                  <button class="btn btn-warning btn-sm btn-editar"
+                          data-id="${u.id}"
+                          data-nombre="${u.nombre}"
+                          data-apellido="${u.apellido}"
+                          data-genero="${u.genero}"
+                          data-telefono="${u.telefono}">
+                    Editar
+                  </button>
+                  <button class="btn btn-danger btn-sm btn-eliminar"
+                          data-id="${u.id}">
+                    Eliminar
+                  </button>
+                </div>
               </td>
             </tr>
           `);
@@ -119,16 +125,39 @@
       }
     }
 
+    tbody.addEventListener('click', async (e) => {
+      const btnEditar = e.target.closest('.btn-editar');
+      if (btnEditar) {
+        editId.value = btnEditar.dataset.id;
+        editNombre.value = btnEditar.dataset.nombre;
+        editApellido.value = btnEditar.dataset.apellido;
+        editGenero.value = btnEditar.dataset.genero;
+        editTelefono.value = btnEditar.dataset.telefono;
+        modalEditar.show();
+        return;
+      }
 
-    tbody.addEventListener('click', (e) => {
-      const btn = e.target.closest('.btn-editar');
-      if (!btn) return;
-      editId.value = btn.dataset.id;
-      editNombre.value = btn.dataset.nombre;
-      editApellido.value = btn.dataset.apellido;
-      editGenero.value = btn.dataset.genero;
-      editTelefono.value = btn.dataset.telefono;
-      modalEditar.show();
+      const btnEliminar = e.target.closest('.btn-eliminar');
+      if (!btnEliminar) return;
+
+      if (!confirm('¿Deseas eliminar este usuario?')) {
+        return;
+      }
+
+      const fd = new FormData();
+      fd.append('id', btnEliminar.dataset.id);
+
+      try {
+        const res = await fetch('eliminar.php', { method: 'POST', body: fd });
+        const txt = await res.text();
+        if (!res.ok) {
+          alert('No se pudo eliminar: ' + txt);
+          return;
+        }
+        await cargarTabla();
+      } catch (err) {
+        alert('Error de red al eliminar: ' + err);
+      }
     });
 
     formEditar.addEventListener('submit', async (e) => {
