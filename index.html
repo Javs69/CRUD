@@ -9,7 +9,11 @@
 <body class="bg-light">
 
   <div class="container mt-5">
-    <h2 class="text-center mb-4">Lista de Usuarios</h2>
+   
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+      <h2 class="mb-0">Lista de Usuarios</h2>
+      <button id="btnCrear" class="btn btn-primary">Crear usuario</button>
+    </div>
 
     <table class="table table-striped table-bordered shadow">
       <thead class="table-dark text-center">
@@ -28,7 +32,49 @@
     </table>
   </div>
 
-  <!-- Modal Editar -->
+<!-- Modal Crear, este fue algo mas fácil -->
+
+<div class="modal fade" id="modalCrear" tabindex="-1" aria-labelledby="modalCrearLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="modalCrearLabel">Nuevo Usuario</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <form id="formCrear">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label" for="crear-nombre">Nombre</label>
+              <input type="text" name="nombre" id="crear-nombre" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="crear-apellido">Apellido</label>
+              <input type="text" name="apellido" id="crear-apellido" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="crear-genero">Género</label>
+              <select name="genero" id="crear-genero" class="form-select" required>
+                <option value="">Seleccione una opción</option>
+                <option>Masculino</option>
+                <option>Femenino</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="crear-telefono">No. Teléfono</label>
+              <input type="text" name="telefono" id="crear-telefono" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            <button class="btn btn-primary" type="submit">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Modal para editar, pedote para hacerlo jjaja -->
   <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -72,13 +118,40 @@
   <script src="public/js/bootstrap.bundle.min.js"></script>
   <script>
     const tbody = document.getElementById('tbody');
+      const btnCrear = document.getElementById('btnCrear');
+    const formCrear = document.getElementById('formCrear');
     const editId = document.getElementById('edit-id');
     const editNombre = document.getElementById('edit-nombre');
     const editApellido = document.getElementById('edit-apellido');
     const editGenero = document.getElementById('edit-genero');
     const editTelefono = document.getElementById('edit-telefono');
     const formEditar = document.getElementById('formEditar');
+     const modalCrear = new bootstrap.Modal(document.getElementById('modalCrear'));
     const modalEditar = new bootstrap.Modal(document.getElementById('modalEditar'));
+
+    btnCrear.addEventListener('click', () => {
+      formCrear.reset();
+      modalCrear.show();
+    });
+
+    formCrear.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(formCrear);
+
+      try {
+        const res = await fetch('crear.php', { method: 'POST', body: fd });
+        const txt = await res.text();
+        if (!res.ok) {
+          alert('No se pudo crear el usuario: ' + txt);
+          return;
+        }
+        modalCrear.hide();
+        await cargarTabla();
+      } catch (err) {
+        alert('Error de red al crear: ' + err);
+      }
+    });
+
 
     async function cargarTabla() {
       try {
