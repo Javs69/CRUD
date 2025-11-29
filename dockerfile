@@ -1,21 +1,17 @@
-# Imagen oficial de PHP con Apache
 FROM php:8.2-apache
 
-# Establecer el directorio de trabajo
 WORKDIR /var/www/html
 
-# Habilitar mod_rewrite si usas URLs amigables
+# Habilita mod_rewrite por si hay URLs amigables
 RUN a2enmod rewrite
 
-# Copiar todos los archivos del proyecto al directorio web de Apache
+# Copia el código de la app
 COPY . /var/www/html
 
+# Instala extensiones para PostgreSQL (pgsql y PDO)
+RUN apt-get update \
+    && apt-get install -y libpq-dev \
+    && docker-php-ext-install pdo_pgsql pgsql \
+    && rm -rf /var/lib/apt/lists/*
 
-
-# (OPCIONAL) Si usas PostgreSQL, descomenta esto:
- RUN apt-get update && apt-get install -y libpq-dev \
-     && docker-php-ext-install pdo pdo_pgsql
-
-# Exponer el puerto 80 dentro del contenedor
 EXPOSE 80
-
